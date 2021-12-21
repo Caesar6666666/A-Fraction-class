@@ -10,15 +10,14 @@ private:
     unsigned long long a,b;
 
 public:
+    Fraction();
     Fraction(long a,long b);
 
     Fraction(const Fraction& u);
 
-    // Fraction()
-
     Fraction(ull _a,ull _b,int _op);
 
-    double change_to_float();
+    double transform_to_float();
  
     friend std::istream& operator >> (std::istream& os,Fraction& u); 
 

@@ -1,5 +1,11 @@
 #include "fraction.h"
 
+Fraction::Fraction() {
+    op = 1;
+    a = 0;
+    b = 1;
+}
+
 Fraction::Fraction(long _a = 0, long _b = 1) {
     op = _a > 0 ? (_b > 0 ? 1 : -1) : (_b > 0 ? -1 : 1);
     a = _a > 0 ? _a : -_a;
@@ -10,7 +16,7 @@ Fraction::Fraction(long _a = 0, long _b = 1) {
     Simplify();
 }
 
-Fraction::Fraction(ull _a,ull _b,int _op):a(_a),b(_b),op(_op) {
+Fraction::Fraction(ull _a = 0,ull _b = 1,int _op = 1):a(_a),b(_b),op(_op) {
     if(_b == 0) {
         exit(-1);
     }
@@ -27,10 +33,11 @@ Fraction::Fraction(const Fraction& u) {
 }
 
 std::istream& operator >> (std::istream& os,Fraction& u) {
-    ull _a,_b;
+    long _a,_b;
     char ch;
     os >> _a >> ch >> _b;
-    u.a = _a;
+    u.op = _a >= 0 ? 1 : -1;
+    u.a = u.op * _a;
     u.b = _b;
     u.Simplify();
     return os; 
@@ -42,12 +49,12 @@ void Fraction::Simplify() {
     b = b / g;
 }
 
-double Fraction::change_to_float() {
+double Fraction::transform_to_float() {
     return (double)a / b * op;
 }
 
 ull Fraction::gcd(ull _x,ull _y) {
-    return _y == 0? _x : gcd(_y, _x % _y);
+    return _y == 0 ? _x : gcd(_y, _x % _y);
 }
 
 std::ostream& operator << (std::ostream& os,const Fraction& u) {
@@ -69,16 +76,18 @@ Fraction Fraction::operator - (const Fraction& u) {
 }
 
 Fraction Fraction::operator * (const Fraction& u) {
-    ull&& a1 = a * u.a;
-    ull&& b1 = b * u.b;
+    ull&& m1 = gcd(a,u.b);
+    ull&& m2 = gcd(b,u.a);
+    ull&& a1 = a / m1 * u.a / m2;
+    ull&& b1 = b / m2 * u.b / m1;
     return Fraction(a1,b1,op * u.op);
 }
 
 Fraction Fraction::operator / (const Fraction& u) {
-    if(op == 0 || u.a == 0) {
-        exit(-1);
-    }
-    ull&& a1 = a * u.b;
-    ull&& b1 = b * u.a;
+    if(u.a == 0) exit(-1);
+    ull&& m1 = gcd(a,u.a);
+    ull&& m2 = gcd(b,u.b);
+    ull&& a1 = a / m1 * u.b / m2;
+    ull&& b1 = b / m2 * u.a / m1;
     return Fraction(a1,b1,op * u.op);
 }
