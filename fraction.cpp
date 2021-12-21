@@ -7,7 +7,7 @@ Fraction::Fraction() {
 }
 
 Fraction::Fraction(long _a = 0, long _b = 1) {
-    op = _a > 0 ? (_b > 0 ? 1 : -1) : (_b > 0 ? -1 : 1);
+    op = _a >= 0 ? (_b > 0 ? 1 : -1) : (_b > 0 ? -1 : 1);
     a = _a > 0 ? _a : -_a;
     b = _b > 0 ? _b : -_b;
     if(b == 0) {
@@ -16,7 +16,7 @@ Fraction::Fraction(long _a = 0, long _b = 1) {
     Simplify();
 }
 
-Fraction::Fraction(ull _a = 0,ull _b = 1,int _op = 1):a(_a),b(_b),op(_op) {
+Fraction::Fraction(ull _a, ull _b, int _op):a(_a),b(_b),op(_op) {
     if(_b == 0) {
         exit(-1);
     }
@@ -27,19 +27,13 @@ Fraction::Fraction(const Fraction& u) {
     a = u.a;
     b = u.b;
     op = u.op;
-    if(b == 0) {
-        exit(-1);
-    }
 }
 
 std::istream& operator >> (std::istream& os,Fraction& u) {
     long _a,_b;
     char ch;
     os >> _a >> ch >> _b;
-    u.op = _a >= 0 ? 1 : -1;
-    u.a = u.op * _a;
-    u.b = _b;
-    u.Simplify();
+    u = Fraction(_a,_b);
     return os; 
 }
 

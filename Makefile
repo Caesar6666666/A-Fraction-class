@@ -1,11 +1,16 @@
 .PHONY:test
 
-task:fraction.o
-	ar -src libfraction.a fraction.o
-	g++ -shared -fpic -o libfraction.so fraction.o
+sharelib:fraction_share.o
+	g++ -shared -fpic -o libfraction.so fraction_share.o
 
-fraction.o:fraction.cpp
-	g++ -c fraction.cpp
+staticlib:fraction_static.o
+	ar -src libfraction.a fraction_static.o
+
+fraction_static.o:fraction.cpp
+	g++ -c fraction.cpp -o fraction_static.o
+
+fraction_share.o:fraction.cpp
+	g++ -fpic -c fraction.cpp -o fraction_share.o
 
 test:
 	g++ test.cpp -o test -I. -L. -lfraction
