@@ -12,6 +12,10 @@ private:
 public:
     Fraction(long a,long b);
 
+    Fraction(const Fraction& u);
+
+    // Fraction()
+
     Fraction(ull _a,ull _b,int _op);
 
     double change_to_float();
