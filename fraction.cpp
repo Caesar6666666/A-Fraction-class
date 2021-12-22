@@ -1,102 +1,114 @@
 #include "fraction.h"
 
-Fraction::Fraction() {
-    op = 1;
-    a = 0;
-    b = 1;
+caesar::Fraction::Fraction() {
+    this->op = 1;
+    this->a = 0;
+    this->b = 1;
 }
 
-Fraction::Fraction(long long _a = 0, long long _b = 1) {
-    op = _a >= 0 ? (_b > 0 ? 1 : -1) : (_b > 0 ? -1 : 1);
-    a = _a > 0 ? _a : -_a;
-    b = _b > 0 ? _b : -_b;
-    if(b == 0) {
+caesar::Fraction::Fraction(long long _a = 0, long long _b = 1) {
+    this->op = _a >= 0 ? (_b > 0 ? 1 : -1) : (_b > 0 ? -1 : 1);
+    this->a = _a > 0 ? _a : -_a;
+    this->b = _b > 0 ? _b : -_b;
+    if(this->b == 0) {
         exit(-1);
     }
     Simplify();
 }
 
-Fraction::Fraction(ull _a, ull _b, int _op):a(_a),b(_b),op(_op) {
+caesar::Fraction::Fraction(ull _a, ull _b, int _op):a(_a),b(_b),op(_op) {
     if(_b == 0) {
         exit(-1);
     }
     Simplify();
 }
 
-Fraction::Fraction(const Fraction& u) {
-    a = u.a;
-    b = u.b;
-    op = u.op;
+caesar::Fraction::Fraction(const Fraction& u) {
+    this->a = u.a;
+    this->b = u.b;
+    this->op = u.op;
 }
 
-std::istream& operator >> (std::istream& os,Fraction& u) {
+std::istream& caesar::operator >> (std::istream& is,caesar::Fraction& u) {
     long _a,_b;
     char ch;
-    os >> _a >> ch >> _b;
-    u = Fraction(_a,_b);
-    return os; 
+    is >> _a >> ch >> _b;
+    u = caesar::Fraction(_a,_b);
+    return is; 
 }
 
-void Fraction::Simplify() {
-    ull g = gcd(a, b);
-    a = a / g;
-    b = b / g;
-}
-
-double Fraction::transform_to_float() const {
-    return (double) a / b * op;
-}
-
-ull Fraction::gcd(ull _x,ull _y) {
-    return _y == 0 ? _x : gcd(_y, _x % _y);
-}
-
-std::ostream& operator << (std::ostream& os,const Fraction& u) {
-    if(u.op > 0) os << u.a << '/' << u.b;
-    else os << '-' << u.a << '/' << u.b;
+std::ostream& caesar::operator << (std::ostream& os,const caesar::Fraction& u) {
+    if(u.mark() > 0) os << u.num() << '/' << u.deno();
+    else os << '-' << u.num() << '/' << u.deno();
     return os;
 }
 
-Fraction Fraction::operator + (const Fraction& u) {
-    ull b1 = b * u.b;
-    long a1 = a * u.b * op + u.a * b * u.op;
+void caesar::Fraction::Simplify() {
+    ull g = gcd(this->a, this->b);
+    this->a = this->a / g;
+    this->b = this->b / g;
+}
+
+ull caesar::Fraction::num() const {
+    return this->a;
+}
+
+ull caesar::Fraction::deno() const {
+    return this->b;
+}
+
+int caesar::Fraction::mark() const {
+    return this->op;
+}
+
+double caesar::Fraction::transform_to_float() const {
+    return (double) this->a / this->b * op;
+}
+
+ull caesar::Fraction::gcd(ull _x,ull _y) const {
+    return _y == 0 ? _x : gcd(_y, _x % _y);
+}
+
+caesar::Fraction caesar::Fraction::operator + (const Fraction& u) const {
+    ull b1 = this->b * u.num();
+    long a1 = this->a * u.deno() * this->op + u.num() * this->b * u.mark();
     return Fraction(a1 > 0 ? a1 : -a1, b1, a1 >= 0 ? 1 : -1);
 }
 
-Fraction Fraction::operator - (const Fraction& u) {
-    ull b1 = b * u.b;
-    long a1 = a * u.b * op - u.a * b * u.op;
+caesar::Fraction caesar::Fraction::operator - (const Fraction& u) const {
+    ull b1 = this->b * u.deno();
+    long a1 = this->a * u.deno() * this->op - u.num() * this->b * u.mark();
     return Fraction(a1 > 0 ? a1 : -a1, b1, a1 >= 0 ? 1 : -1);
 }
 
-Fraction Fraction::operator * (const Fraction& u) {
-    ull&& m1 = gcd(a,u.b);
-    ull&& m2 = gcd(b,u.a);
-    ull&& a1 = a / m1 * u.a / m2;
-    ull&& b1 = b / m2 * u.b / m1;
-    return Fraction(a1,b1,op * u.op);
+caesar::Fraction caesar::Fraction::operator * (const Fraction& u) const {
+    ull&& m1 = gcd(this->a,u.deno());
+    ull&& m2 = gcd(this->b,u.num());
+    ull&& a1 = this->a / m1 * u.num() / m2;
+    ull&& b1 = this->b / m2 * u.deno() / m1;
+    return Fraction(a1,b1,this->op * u.mark());
 }
 
-Fraction Fraction::operator / (const Fraction& u) {
-    if(u.a == 0) exit(-1);
-    ull&& m1 = gcd(a,u.a);
-    ull&& m2 = gcd(b,u.b);
-    ull&& a1 = a / m1 * u.b / m2;
-    ull&& b1 = b / m2 * u.a / m1;
-    return Fraction(a1,b1,op * u.op);
+caesar::Fraction caesar::Fraction::operator / (const Fraction& u) const {
+    if(u.num() == 0) exit(-1);
+    ull&& m1 = gcd(this->a,u.num());
+    ull&& m2 = gcd(this->b,u.deno());
+    ull&& a1 = this->a / m1 * u.deno() / m2;
+    ull&& b1 = this->b / m2 * u.num() / m1;
+    return Fraction(a1,b1,this->op * u.mark());
 }
 
-bool Fraction::operator < (const Fraction& u) {
-    if(op == u.op && a == u.a && b == u.b) return false;
-    return transform_to_float() - u.transform_to_float() < 0;
+bool caesar::Fraction::operator < (const Fraction& u) const {
+    if(this->op == u.mark() && this->a == u.num() && this->b == u.deno()) return false;
+    return this->transform_to_float() - u.transform_to_float() < 0;
 }
 
-bool Fraction::operator > (const Fraction& u) {
-   if(op == u.op && a == u.a && b == u.b) return false;
-    return transform_to_float() - u.transform_to_float() > 0;
+bool caesar::Fraction::operator > (const Fraction& u) const {
+   if(this->op == u.mark() && this->a == u.num() && this->b == u.deno()) return false;
+    return this->transform_to_float() - u.transform_to_float() > 0;
 }
 
-bool Fraction::operator == (const Fraction& u) {
-    if(op == u.op && a == u.a && b == u.b) return true;
+bool caesar::Fraction::operator == (const Fraction& u) const {
+    if(this->op == u.mark() && this->a == u.num() && this->b == u.deno()) return true;
     return false;
 }

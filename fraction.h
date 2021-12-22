@@ -3,6 +3,7 @@
 #include <iostream>
 
 typedef unsigned long long ull;
+namespace caesar {
 
 class Fraction {
 private:
@@ -19,27 +20,33 @@ public:
     Fraction(ull _a,ull _b,int _op);
 
     double transform_to_float() const;
+
+    ull num() const;
+
+    ull deno() const;
+
+    int mark() const;
  
-    friend std::istream& operator >> (std::istream& os,Fraction& u); 
-
-    friend std::ostream& operator << (std::ostream& os,const Fraction& u);
-
     void Simplify();
 
-    ull gcd(ull _x,ull _y);
+    ull gcd(ull _x,ull _y) const;
 
-    Fraction operator * (const Fraction& u);
+    Fraction operator * (const Fraction& u) const;
 
-    Fraction operator / (const Fraction& u);
+    Fraction operator / (const Fraction& u) const;
 
-    Fraction operator + (const Fraction& u);
+    Fraction operator + (const Fraction& u) const;
 
-    Fraction operator - (const Fraction& u);
+    Fraction operator - (const Fraction& u) const;
 
-    bool operator < (const Fraction& u);
+    bool operator < (const Fraction& u) const;
 
-    bool operator > (const Fraction& u);
+    bool operator > (const Fraction& u) const;
     
-    bool operator == (const Fraction& u);
+    bool operator == (const Fraction& u) const;
 };
+
+std::istream& operator >> (std::istream&,Fraction&);
+std::ostream& operator << (std::ostream&,const Fraction&);
+}
 #endif
