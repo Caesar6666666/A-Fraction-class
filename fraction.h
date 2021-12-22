@@ -11,15 +11,18 @@ private:
 
 public:
     Fraction();
-    Fraction(long a,long b);
+
+    Fraction(long long a,long long b);
 
     Fraction(const Fraction& u);
 
     Fraction(ull _a,ull _b,int _op);
 
-    double transform_to_float();
+    double transform_to_float() const;
  
     friend std::istream& operator >> (std::istream& os,Fraction& u); 
+
+    friend std::ostream& operator << (std::ostream& os,const Fraction& u);
 
     void Simplify();
 
@@ -33,6 +36,10 @@ public:
 
     Fraction operator - (const Fraction& u);
 
-    friend std::ostream& operator << (std::ostream& os,const Fraction& u);
+    bool operator < (const Fraction& u);
+
+    bool operator > (const Fraction& u);
+    
+    bool operator == (const Fraction& u);
 };
 #endif

@@ -6,7 +6,7 @@ Fraction::Fraction() {
     b = 1;
 }
 
-Fraction::Fraction(long _a = 0, long _b = 1) {
+Fraction::Fraction(long long _a = 0, long long _b = 1) {
     op = _a >= 0 ? (_b > 0 ? 1 : -1) : (_b > 0 ? -1 : 1);
     a = _a > 0 ? _a : -_a;
     b = _b > 0 ? _b : -_b;
@@ -43,8 +43,8 @@ void Fraction::Simplify() {
     b = b / g;
 }
 
-double Fraction::transform_to_float() {
-    return (double)a / b * op;
+double Fraction::transform_to_float() const {
+    return (double) a / b * op;
 }
 
 ull Fraction::gcd(ull _x,ull _y) {
@@ -60,13 +60,13 @@ std::ostream& operator << (std::ostream& os,const Fraction& u) {
 Fraction Fraction::operator + (const Fraction& u) {
     ull b1 = b * u.b;
     long a1 = a * u.b * op + u.a * b * u.op;
-    return Fraction(a1 > 0 ? a1 : -a1, b1, a1 > 0 ? 1 : -1);
+    return Fraction(a1 > 0 ? a1 : -a1, b1, a1 >= 0 ? 1 : -1);
 }
 
 Fraction Fraction::operator - (const Fraction& u) {
     ull b1 = b * u.b;
     long a1 = a * u.b * op - u.a * b * u.op;
-    return Fraction(a1 > 0 ? a1 : -a1, b1, a1 > 0 ? 1 : -1);
+    return Fraction(a1 > 0 ? a1 : -a1, b1, a1 >= 0 ? 1 : -1);
 }
 
 Fraction Fraction::operator * (const Fraction& u) {
@@ -84,4 +84,19 @@ Fraction Fraction::operator / (const Fraction& u) {
     ull&& a1 = a / m1 * u.b / m2;
     ull&& b1 = b / m2 * u.a / m1;
     return Fraction(a1,b1,op * u.op);
+}
+
+bool Fraction::operator < (const Fraction& u) {
+    if(op == u.op && a == u.a && b == u.b) return false;
+    return transform_to_float() - u.transform_to_float() < 0;
+}
+
+bool Fraction::operator > (const Fraction& u) {
+   if(op == u.op && a == u.a && b == u.b) return false;
+    return transform_to_float() - u.transform_to_float() > 0;
+}
+
+bool Fraction::operator == (const Fraction& u) {
+    if(op == u.op && a == u.a && b == u.b) return true;
+    return false;
 }
