@@ -1,6 +1,5 @@
 #ifndef __FRACTION_H__
 #define __FRACTION_H__
-#include <iostream>
 
 typedef unsigned long long ull;
 namespace caesar {
@@ -43,9 +42,6 @@ public:
 
     bool operator == (const Fraction& u) const;
 };
-
-std::istream& operator >> (std::istream&,Fraction&);
-std::ostream& operator << (std::ostream&,const Fraction&);
 
 template<typename T>
 T gcd(T _x,T _y);

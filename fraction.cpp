@@ -10,16 +10,12 @@ caesar::Fraction::Fraction(long long _a, long long _b) {
     this->op = _a >= 0 ? (_b > 0 ? 1 : -1) : (_b > 0 ? -1 : 1);
     this->a = _a > 0 ? _a : -_a;
     this->b = _b > 0 ? _b : -_b;
-    if(this->b == 0) {
-        exit(-1);
-    }
+    if(this->b == 0) throw(-1);
     Simplify();
 }
 
 caesar::Fraction::Fraction(ull _a, ull _b, int _op):a(_a),b(_b),op(_op) {
-    if(_b == 0) {
-        exit(-1);
-    }
+    if(_b == 0) throw(-1);
     Simplify();
 }
 
@@ -27,20 +23,6 @@ caesar::Fraction::Fraction(const Fraction& u) {
     this->a = u.a;
     this->b = u.b;
     this->op = u.op;
-}
-
-std::istream& caesar::operator >> (std::istream& is,caesar::Fraction& u) {
-    long _a,_b;
-    char ch;
-    is >> _a >> ch >> _b;
-    u = caesar::Fraction(_a,_b);
-    return is;
-}
-
-std::ostream& caesar::operator << (std::ostream& os,const caesar::Fraction& u) {
-    if(u.mark() > 0) os << u.num() << '/' << u.deno();
-    else os << '-' << u.num() << '/' << u.deno();
-    return os;
 }
 
 void caesar::Fraction::Simplify() {
@@ -91,7 +73,7 @@ caesar::Fraction caesar::Fraction::operator * (const Fraction& u) const {
 }
 
 caesar::Fraction caesar::Fraction::operator / (const Fraction& u) const {
-    if(u.num() == 0) exit(-1);
+    if(u.num() == 0) throw(-1);
     ull&& m1 = gcd(this->a,u.num());
     ull&& m2 = gcd(this->b,u.deno());
     ull&& a1 = this->a / m1 * u.deno() / m2;
