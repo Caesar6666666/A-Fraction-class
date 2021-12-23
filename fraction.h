@@ -26,10 +26,8 @@ public:
     ull deno() const;
 
     int mark() const;
- 
-    void Simplify();
 
-    ull gcd(ull _x,ull _y) const;
+    void Simplify();
 
     Fraction operator * (const Fraction& u) const;
 
@@ -42,11 +40,15 @@ public:
     bool operator < (const Fraction& u) const;
 
     bool operator > (const Fraction& u) const;
-    
+
     bool operator == (const Fraction& u) const;
 };
 
 std::istream& operator >> (std::istream&,Fraction&);
 std::ostream& operator << (std::ostream&,const Fraction&);
+
+template<typename T>
+T gcd(T _x,T _y);
+
 }
 #endif

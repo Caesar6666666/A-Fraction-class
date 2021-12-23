@@ -6,7 +6,7 @@ caesar::Fraction::Fraction() {
     this->b = 1;
 }
 
-caesar::Fraction::Fraction(long long _a = 0, long long _b = 1) {
+caesar::Fraction::Fraction(long long _a, long long _b) {
     this->op = _a >= 0 ? (_b > 0 ? 1 : -1) : (_b > 0 ? -1 : 1);
     this->a = _a > 0 ? _a : -_a;
     this->b = _b > 0 ? _b : -_b;
@@ -34,7 +34,7 @@ std::istream& caesar::operator >> (std::istream& is,caesar::Fraction& u) {
     char ch;
     is >> _a >> ch >> _b;
     u = caesar::Fraction(_a,_b);
-    return is; 
+    return is;
 }
 
 std::ostream& caesar::operator << (std::ostream& os,const caesar::Fraction& u) {
@@ -65,7 +65,8 @@ double caesar::Fraction::transform_to_float() const {
     return (double) this->a / this->b * op;
 }
 
-ull caesar::Fraction::gcd(ull _x,ull _y) const {
+template<typename T>
+T caesar::gcd(T _x,T _y) {
     return _y == 0 ? _x : gcd(_y, _x % _y);
 }
 
