@@ -30,7 +30,7 @@ namespace caesar {
         void Simplify();
     };
 
-    template<typename T1, typename T2>
+    template<typename T1,typename T2>
     T1 gcd(const T1& _x,const T2& _y) {
         return _y == 0 ? _x : gcd(_y, _x % _y);
     }
@@ -60,7 +60,8 @@ namespace caesar {
         Simplify();
     }
 
-    template<typename T,typename T1>
+    template<typename T>
+    template<typename T1>
     Fraction<T>::Fraction(const Fraction<T1>& u) {
         this->a = u.num();
         this->b = u.deno();
