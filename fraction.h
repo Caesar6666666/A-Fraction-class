@@ -97,7 +97,7 @@ namespace caesar {
 
     template<typename T1,typename T2>
     Fraction<T1> operator + (const Fraction<T1>& u,const Fraction<T2>& v) {
-        T1&& b1 = u.deno() * v.num();
+        T1&& b1 = u.deno() * v.deno();
         T1&& a1 = u.num() * v.deno() * u.mark() + v.num() * u.deno() * v.mark();
         return {a1 > 0 ? a1 : -a1, b1, a1 >= 0 ? 1 : -1};
     }
