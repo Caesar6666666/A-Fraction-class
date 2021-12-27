@@ -95,55 +95,22 @@ namespace caesar {
         return (double) this->a / this->b * op;
     }
 
-    template<bool T,typename T1,typename T2>
-    class ReturnTypeFun;
-
     template<typename T1,typename T2>
-    class ReturnTypeFun<true,T1,T2> {
-    public:
-        typedef T1 ReturnType;
-    };
-
-    template<typename T1,typename T2>
-    class ReturnTypeFun<false,T1,T2> {
-    public:
-        typedef T2 ReturnType;
-    };
-
-    template<typename T1,typename T2>
-    class ReturnValueType {
-    public:
-        typedef typename ReturnTypeFun<(sizeof(T1) > sizeof(T2)), T1, T2>::ReturnType ReturnType;
-    };
-
-    template<>
-    class ReturnValueType<int, float> {
-    public:
-        typedef float ReturnType;
-    };
-
-    template<>
-    class ReturnValueType<float, int> {
-    public:
-        typedef float ReturnType;
-    };
-
-    template<typename T1,typename T2>
-    Fraction<typename ReturnValueType<T1,T2>::ReturnType> operator + (const Fraction<T1>& u,const Fraction<T2>& v) {
+    Fraction<typename std::common_type_t<T1, T2>> operator + (const Fraction<T1>& u,const Fraction<T2>& v) {
         T1&& b1 = u.deno() * v.deno();
         T1&& a1 = u.num() * v.deno() * u.mark() + v.num() * u.deno() * v.mark();
         return {a1 > 0 ? a1 : -a1, b1, a1 >= 0 ? 1 : -1};
     }
 
     template<typename T1,typename T2>
-    Fraction<typename ReturnValueType<T1,T2>::ReturnType> operator - (const Fraction<T1>& u,const Fraction<T2>& v) {
+    Fraction<typename std::common_type_t<T1, T2>> operator - (const Fraction<T1>& u,const Fraction<T2>& v) {
         T1&& b1 = u.deno() * v.deno();
         T1&& a1 = u.num() * v.deno() * u.mark() - v.num() * u.deno() * v.mark();
         return {a1 > 0 ? a1 : -a1, b1, a1 >= 0 ? 1 : -1};
     }
 
     template<typename T1,typename T2>
-    Fraction<typename ReturnValueType<T1,T2>::ReturnType> operator * (const Fraction<T1>& u,const Fraction<T2>& v) {
+    Fraction<typename std::common_type_t<T1, T2>> operator * (const Fraction<T1>& u,const Fraction<T2>& v) {
         T1&& m1 = gcd<T1>(u.num(),v.deno());
         T1&& m2 = gcd<T1>(u.deno(),v.num());
         T1&& a1 = u.num() / m1 * v.num() / m2;
@@ -152,7 +119,7 @@ namespace caesar {
     }
 
     template<typename T1,typename T2>
-    Fraction<typename ReturnValueType<T1,T2>::ReturnType> operator / (const Fraction<T1>& u,const Fraction<T2>& v) {
+    Fraction<typename std::common_type_t<T1, T2>> operator / (const Fraction<T1>& u,const Fraction<T2>& v) {
         if(v.num() == 0) throw(-1);
         T1&& m1 = gcd(u.num(),v.num());
         T1&& m2 = gcd(u.deno(),v.deno());
