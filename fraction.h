@@ -1,9 +1,12 @@
 #ifndef __FRACTION_H__
 #define __FRACTION_H__
+#pragma once
+
 #include <gperftools/profiler.h>
 #include <limits>
 #include <type_traits>
-#pragma once
+
+#define MathUtils_SignBit(x) (((signed char *)&x)[sizeof(x) - 1] >> 7 | 1)
 namespace caesar {
 using namespace std;
 template <typename T>
@@ -11,6 +14,7 @@ class Fraction {
 private:
     int op;
     T numer, denom;
+    double val;
 
 public:
     Fraction();
@@ -59,23 +63,25 @@ Fraction<T>::Fraction() {
     this->op = 1;
     this->numer = 0;
     this->denom = 1;
+    this->val = 0;
 }
 
 template <typename T>
 Fraction<T>::Fraction(const T &_numer, const T &_denom) {
-    this->op = _numer >= 0 ? (_denom > 0 ? 1 : -1) : (_denom > 0 ? -1 : 1);
-    this->numer = _numer > 0 ? _numer : -_numer;
-    this->denom = _denom > 0 ? _denom : -_denom;
-    if (this->denom == 0) throw(-1);
+    if (_denom == 0) throw(-1);
+    this->op = MathUtils_SignBit(numer) * MathUtils_SignBit(denom);
+    this->numer = _numer * MathUtils_SignBit(numer);
+    this->denom = _denom * MathUtils_SignBit(denom);
     Simplify();
 }
 
 template <typename T>
 Fraction<T>::Fraction(const T &_numer, const T &_denom, const int &_op) {
     if (_denom == 0) throw(-1);
-    this->numer = _numer > 0 ? _numer : -_numer;
-    this->denom = _denom > 0 ? _denom : -_denom;
-    this->op = _op;
+    this->op = MathUtils_SignBit(_op);
+    this->op *= MathUtils_SignBit(numer) * MathUtils_SignBit(denom);
+    this->numer = _numer * MathUtils_SignBit(numer);
+    this->denom = _denom * MathUtils_SignBit(denom);
     Simplify();
 }
 
@@ -89,12 +95,15 @@ Fraction<T>::Fraction(const Fraction<T1> &u) {
 
 template <typename T>
 void Fraction<T>::Simplify() {
-    if (this->numer == 0)
+    if (this->numer == 0) {
         this->denom = 1;
-    else {
-        T g = gcd(this->numer, this->denom);
+        this->op = 1;
+        this->val = 0;
+    } else {
+        auto g = gcd(this->numer, this->denom);
         this->numer = this->numer / g;
         this->denom = this->denom / g;
+        this->val = (double)this->numer / this->denom * this->op;
     }
 }
 
@@ -115,7 +124,7 @@ auto Fraction<T>::mark() const -> int {
 
 template <typename T>
 inline auto Fraction<T>::ConvToFloat() const -> double {
-    return (double)this->numer / this->denom * op;
+    return this->val;
 }
 
 template <typename T1, typename T2>
@@ -153,8 +162,13 @@ auto operator+(const Fraction<T1> &u, const Fraction<T2> &v) {
             auto u1_denom = u.get_denom() / d1;
             if (check_mul_overflow(u.get_numer(), v1_denom) || check_mul_overflow(v.get_numer(), u1_denom))
                 throw(-1);
-            auto t = u.get_numer() * v1_denom - v.get_numer() * u1_denom;
-            if (t < 0) t = -t, op = -op;
+            std::common_type_t<T1, T2> t;
+            if (u.mark() * u.ConvToFloat() > v.mark() * v.ConvToFloat()) {
+                t = u.get_numer() * v1_denom - v.get_numer() * u1_denom;
+            } else {
+                t = v.get_numer() * u1_denom - u.get_numer() * v1_denom;
+                op = -op;
+            }
             auto d2 = gcd(t, d1);
             t /= d2;
             return Fraction<typename std::common_type_t<T1, T2>>{t, u1_denom * v.get_denom() / d2, op};
@@ -163,8 +177,13 @@ auto operator+(const Fraction<T1> &u, const Fraction<T2> &v) {
             if (check_mul_overflow(u.get_numer(), v.get_denom())
                 || check_mul_overflow(v.get_numer(), u.get_denom()))
                 throw(-1);
-            auto t = u.get_numer() * v.get_denom() - v.get_numer() * u.get_denom();
-            if (t < 0) t = -t, op = -op;
+            std::common_type_t<T1, T2> t;
+            if (u.mark() * u.ConvToFloat() > v.mark() * v.ConvToFloat()) {
+                t = u.get_numer() * v.get_denom() - v.get_numer() * u.get_denom();
+            } else {
+                t = v.get_numer() * u.get_denom() - u.get_numer() * v.get_denom();
+                op = -op;
+            }
             auto denom = u.get_denom() * v.get_denom();
             auto d2 = gcd(t, denom);
             t /= d2;
@@ -178,7 +197,7 @@ auto operator+(const Fraction<T1> &u, const Fraction<T2> &v) {
 template <typename T1, typename T2>
 auto operator-(const Fraction<T1> &u, const Fraction<T2> &v)
     -> Fraction<typename std::common_type_t<T1, T2>> {
-    if (u.mark() * v.mark == 1) {
+    if (u.mark() * v.mark() == 1) {
         auto d1 = gcd(u.get_denom(), v.get_denom());
         if (d1 > 1) {
             int op = u.mark();
@@ -186,8 +205,13 @@ auto operator-(const Fraction<T1> &u, const Fraction<T2> &v)
             auto u1_denom = u.get_denom() / d1;
             if (check_mul_overflow(u.get_numer(), v1_denom) || check_mul_overflow(v.get_numer(), u1_denom))
                 throw(-1);
-            auto t = u.get_numer() * v1_denom - v.get_numer() * u1_denom;
-            if (t < 0) t = -t, op = -op;
+            std::common_type_t<T1, T2> t;
+            if (u.mark() * u.ConvToFloat() > v.mark() * v.ConvToFloat()) {
+                t = u.get_numer() * v1_denom - v.get_numer() * u1_denom;
+            } else {
+                t = v.get_numer() * u1_denom - u.get_numer() * v1_denom;
+                op = -op;
+            }
             auto d2 = gcd(t, d1);
             t /= d2;
             return Fraction<typename std::common_type_t<T1, T2>>{t, u1_denom * v.get_denom() / d2, op};
@@ -196,8 +220,13 @@ auto operator-(const Fraction<T1> &u, const Fraction<T2> &v)
             if (check_mul_overflow(u.get_numer(), v.get_denom())
                 || check_mul_overflow(v.get_numer(), u.get_denom()))
                 throw(-1);
-            auto t = u.get_numer() * v.get_denom() - v.get_numer() * u.get_denom();
-            if (t < 0) t = -t, op = -op;
+            std::common_type_t<T1, T2> t;
+            if (u.mark() * u.ConvToFloat() > v.mark() * v.ConvToFloat()) {
+                t = u.get_numer() * v.get_denom() - v.get_numer() * u.get_denom();
+            } else {
+                t = v.get_numer() * u.get_denom() - u.get_numer() * v.get_denom();
+                op = -op;
+            }
             auto denom = u.get_denom() * v.get_denom();
             auto d2 = gcd(t, denom);
             t /= d2;
