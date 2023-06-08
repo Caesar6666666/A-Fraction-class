@@ -13,4 +13,4 @@ fraction_share.o:fraction.cpp
 	g++ -fpic -c fraction.cpp -o fraction_share.o
 
 test:
-	g++ -O2 test.cpp -o test -lprofiler
+	g++ -std=c++20 -O2 test.cpp -o test -lprofiler

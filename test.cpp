@@ -29,8 +29,11 @@ double operator-(const timeval &t1, const timeval &t2) {
 }
 
 int main() {
+    mersenne_twister_engine<unsigned long long, 64, 312, 156, 31, 0xb5026f5aa96619e9ULL, 29,
+                            0x5555555555555555ULL, 17, 0x71d67fffeda60000ULL, 37, 0xfff7eee000000000ULL, 43, 6364136223846793005ULL>
+        e1;
     default_random_engine e;
-    e.seed(time(0));
+    e.seed(time(NULL));
     for (int i = 1; i <= 100000000; ++i) {
         auto num1 = e();
         auto num2 = e();
@@ -39,7 +42,7 @@ int main() {
         auto f1 = caesar::Fraction<unsigned long long>(num1, den1,-1);
         auto f2 = caesar::Fraction<unsigned long long>(num2, den2,1);
         auto&& f3 = f1 + f2;
-        if(fabs(f3.ConvToFloat()-(-(double)num1/den1+(double)num2/den2))>0.0001)
+        if(fabs(f3.ConvToFloat()-(-(double)num1/den1+(double)num2/den2))>fabs(0.00001 * f3.ConvToFloat()))
             cout << f1 << " - " << f2 << " = " << f3 << " " << f3.ConvToFloat() << " " << (-(double)num1/den1+(double)num2/den2) << endl;
     }
     // cout << caesar::Fraction<int>(1,2) << endl;
