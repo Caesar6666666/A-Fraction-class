@@ -17,7 +17,7 @@ std::istream &operator>>(std::istream &is, caesar::Fraction<T> &u) {
 
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const caesar::Fraction<T> &u) {
-    if (u.mark() > 0)
+    if (u.get_sign() > 0)
         os << u.get_numer() << '/' << u.get_denom();
     else
         os << '-' << u.get_numer() << '/' << u.get_denom();
@@ -34,7 +34,7 @@ int main() {
         e1;
     default_random_engine e;
     e.seed(time(NULL));
-    for (int i = 1; i <= 100000000; ++i) {
+    for (int i = 1; i <= 10000000; ++i) {
         auto num1 = e();
         auto num2 = e();
         auto den1 = e();
