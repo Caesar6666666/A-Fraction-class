@@ -43,7 +43,7 @@ int main() {
         auto f2 = caesar::Fraction<unsigned long long>(num2, den2,1);
         auto&& f3 = f1 + f2;
         if(fabs(f3.ConvToFloat()-(-(double)num1/den1+(double)num2/den2))>fabs(0.00001 * f3.ConvToFloat()))
-            cout << f1 << " - " << f2 << " = " << f3 << " " << f3.ConvToFloat() << " " << (-(double)num1/den1+(double)num2/den2) << endl;
+            cout << f1 << " + " << f2 << " = " << f3 << " " << f3.ConvToFloat() << " " << (-(double)num1/den1+(double)num2/den2) << endl;
     }
     // cout << caesar::Fraction<int>(1,2) << endl;
     return 0;

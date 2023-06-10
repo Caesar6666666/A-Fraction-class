@@ -12,7 +12,10 @@
 #define MathUtils_SignBit(x) (((signed char *)&x)[sizeof(x) - 1] >> 7 | 1)
 namespace caesar {
 using namespace std;
-template <typename T>
+    template <typename T>
+    concept VALID = std::is_unsigned_v<T>;
+
+template <VALID T>
 class Fraction {
 private:
     int8_t sign;
@@ -24,7 +27,7 @@ public:
 
     Fraction(const T &_numer, const T &_denom); // a/b
 
-    template <typename T1>
+    template <VALID T1>
     Fraction(const Fraction<T1> &u);
 
     Fraction(const T &_numer, const T &_denom, const int8_t &_sign); // op * a/b
@@ -41,7 +44,7 @@ public:
 };
 
 // https://www.luogu.com.cn/blog/maysoul/solution-p5435
-template <typename T1, typename T2>
+template <VALID T1, VALID T2>
 auto gcd(T1 a, T2 b) -> std::common_type_t<T1, T2> {
     int az = __builtin_ctzll(a), bz = __builtin_ctzll(b);
     int z = min(az, bz);
@@ -73,7 +76,7 @@ inline auto check_mul_overflow(const T1 &_x, const T2 &_y) -> bool {
            || _y < numeric_limits<typename std::common_type_t<T1, T2>>::min() / (double)_x;
 }
 
-template <typename T>
+template <VALID T>
 Fraction<T>::Fraction() {
     this->sign = 1;
     this->numer = 0;
@@ -81,7 +84,7 @@ Fraction<T>::Fraction() {
     this->val = 0;
 }
 
-template <typename T>
+template <VALID T>
 Fraction<T>::Fraction(const T &_numer, const T &_denom) {
     if (_denom == 0) {
         cout << "divided by 0" << endl;
@@ -93,7 +96,7 @@ Fraction<T>::Fraction(const T &_numer, const T &_denom) {
     Simplify();
 }
 
-template <typename T>
+template <VALID T>
 Fraction<T>::Fraction(const T &_numer, const T &_denom, const int8_t &_sign) {
     if ((_sign != 1 && _sign != -1) || _numer < 0 || _denom <= 0) {
         cout << format("input error: op = {}, numer = {}, denom = {}", _sign, _numer, _denom) << endl;
@@ -105,8 +108,8 @@ Fraction<T>::Fraction(const T &_numer, const T &_denom, const int8_t &_sign) {
     Simplify();
 }
 
-template <typename T>
-template <typename T1>
+template <VALID T>
+template <VALID T1>
 Fraction<T>::Fraction(const Fraction<T1> &u) {
     this->numer = u.get_numer();
     this->denom = u.get_denom();
@@ -114,7 +117,7 @@ Fraction<T>::Fraction(const Fraction<T1> &u) {
     this->val = u.ConvToFloat();
 }
 
-template <typename T>
+template <VALID T>
 void Fraction<T>::Simplify() {
     if (this->numer == 0) {
         this->denom = 1;
@@ -128,27 +131,27 @@ void Fraction<T>::Simplify() {
     }
 }
 
-template <typename T>
+template <VALID T>
 auto Fraction<T>::get_numer() const -> T {
     return this->numer;
 }
 
-template <typename T>
+template <VALID T>
 auto Fraction<T>::get_denom() const -> T {
     return this->denom;
 }
 
-template <typename T>
+template <VALID T>
 auto Fraction<T>::get_sign() const -> int8_t {
     return this->sign;
 }
 
-template <typename T>
+template <VALID T>
 inline auto Fraction<T>::ConvToFloat() const -> double {
     return this->val;
 }
 
-template <typename T1, typename T2>
+template <VALID T1, VALID T2>
 auto operator+(const Fraction<T1> &u, const Fraction<T2> &v) {
     // ProfilerStart("cpp_demo_perf.prof");
     if (u.get_sign() * v.get_sign() == 1) {
@@ -182,7 +185,7 @@ auto operator+(const Fraction<T1> &u, const Fraction<T2> &v) {
             auto d2 = gcd(t, denom);
             t /= d2;
             denom /= d2;
-            return Fraction<typename std::common_type_t<T1, T2>>{t, denom, u.get_sign()};
+            return Fraction<std::common_type_t<T1, T2>>{t, denom, u.get_sign()};
         }
     } else {
         auto d1 = gcd(u.get_denom(), v.get_denom());
@@ -205,7 +208,7 @@ auto operator+(const Fraction<T1> &u, const Fraction<T2> &v) {
             }
             auto d2 = gcd(t, d1);
             t /= d2;
-            return Fraction<typename std::common_type_t<T1, T2>>{t, u1_denom * v.get_denom() / d2, sign};
+            return Fraction<std::common_type_t<T1, T2>>{t, u1_denom * v.get_denom() / d2, sign};
         } else {
             int8_t sign = u.get_sign();
             if (check_mul_overflow(u.get_numer(), v.get_denom())
@@ -232,9 +235,9 @@ auto operator+(const Fraction<T1> &u, const Fraction<T2> &v) {
     // ProfilerStop();
 }
 
-template <typename T1, typename T2>
+template <VALID T1, VALID T2>
 auto operator-(const Fraction<T1> &u, const Fraction<T2> &v)
-    -> Fraction<typename std::common_type_t<T1, T2>> {
+    -> Fraction<std::common_type_t<T1, T2>> {
     if (u.get_sign() * v.get_sign() == 1) {
         auto d1 = gcd(u.get_denom(), v.get_denom());
         if (d1 > 1) {
@@ -315,9 +318,9 @@ auto operator-(const Fraction<T1> &u, const Fraction<T2> &v)
     }
 }
 
-template <typename T1, typename T2>
+template <VALID T1, VALID T2>
 auto operator*(const Fraction<T1> &u, const Fraction<T2> &v)
-    -> Fraction<typename std::common_type_t<T1, T2>> {
+    -> Fraction<std::common_type_t<T1, T2>> {
     auto d1 = gcd(u.get_numer(), v.get_denom());
     auto d2 = gcd(u.get_denom(), v.get_numer());
     auto u_numer = u.get_numer() / d1;
@@ -334,9 +337,9 @@ auto operator*(const Fraction<T1> &u, const Fraction<T2> &v)
                                                          u.get_sign() * v.get_sign()};
 }
 
-template <typename T1, typename T2>
+template <VALID T1, VALID T2>
 auto operator/(const Fraction<T1> &u, const Fraction<T2> &v)
-    -> Fraction<typename std::common_type_t<T1, T2>> {
+    -> Fraction<std::common_type_t<T1, T2>> {
     if (v.get_numer() == 0) {
         cout << format("overflow at operator '/': u = {}{}/{}, v = {}{}/{}", u.get_sign() == -1 ? '-' : ' ',
                        u.get_numer(), u.get_denom(), v.get_sign() == -1 ? '-' : ' ', v.get_numer(),
@@ -359,17 +362,17 @@ auto operator/(const Fraction<T1> &u, const Fraction<T2> &v)
                                                          u.get_sign() * v.get_sign()};
 }
 
-template <typename T1, typename T2>
+template <VALID T1, VALID T2>
 auto operator<(const Fraction<T1> &u, const Fraction<T2> &v) -> bool {
     return u.ConvToFloat() - v.ConvToFloat() < 0;
 }
 
-template <typename T1, typename T2>
+template <VALID T1, VALID T2>
 auto operator>(const Fraction<T1> &u, const Fraction<T2> &v) -> bool {
     return u.ConvToFloat() - v.ConvToFloat() > 0;
 }
 
-template <typename T1, typename T2>
+template <VALID T1, VALID T2>
 auto operator==(const Fraction<T1> &u, const Fraction<T2> &v) -> bool {
     if (u.get_sign() == v.get_sign() && u.get_numer() == v.get_numer() && u.get_denom() == v.get_denom())
         return true;
