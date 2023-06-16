@@ -210,8 +210,8 @@ Fraction<T>::Fraction(const T1 &_numer, const T1 &_denom) {
         throw("input error");
     }
     this->sign = MathUtils_SignBit(numer) * MathUtils_SignBit(denom);
-    this->numer = _numer * MathUtils_SignBit(numer);
-    this->denom = _denom * MathUtils_SignBit(denom);
+    this->numer = _numer > 0 ? _numer : ~(T)_numer + 1;
+    this->denom = _denom > 0 ? _denom : ~(T)_denom + 1;
     Simplify();
 }
 
