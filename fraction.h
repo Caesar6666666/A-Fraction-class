@@ -2,7 +2,6 @@
 #define __FRACTION_H__
 #pragma once
 
-// #include <gperftools/profiler.h>
 #include <cstdint>
 #include <format>
 #include <iostream>
