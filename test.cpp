@@ -3,6 +3,7 @@
 #include <iostream>
 #include <random>
 #include <chrono>
+#include <cstdint>
 using namespace std;
 
 #define frac(x) (x).get_sign() == 1 ? ' ' : '-', (x).get_numer(), (x).get_denom()
@@ -27,4 +28,3 @@ int main() {
     cout << "Time: " << chrono::duration_cast<chrono::milliseconds>(end - start).count() << "ms" << endl;
     return 0;
 }
-// -732564845/821930932 - 173400416/394589155 = -1/4 -0.25 -0.451828

@@ -7,7 +7,7 @@
 #include <iostream>
 #include <limits>
 #include <type_traits>
-
+#include <numeric>
 #define MathUtils_SignBit(x) (((signed char *)&x)[sizeof(x) - 1] >> 7 | 1)
 namespace caesar {
 using namespace std;
@@ -50,83 +50,39 @@ public:
     auto get_sign() const -> int8_t;
 
     void Simplify();
+
+    template <UnsignedType T1, UnsignedType T2>
+    friend auto operator+(const Fraction<T1> &u, const Fraction<T2> &v);
+
+    template <UnsignedType T1>
+    friend auto operator-(const Fraction<T1> &u) -> Fraction<T>;
+
+    template <UnsignedType T1, UnsignedType T2>
+    friend auto operator-(const Fraction<T1> &u, const Fraction<T2> &v)
+        -> Fraction<std::common_type_t<T1, T2>>;
+
+    template <UnsignedType T1, UnsignedType T2>
+    friend auto operator*(const Fraction<T1> &u, const Fraction<T2> &v)
+        -> Fraction<std::common_type_t<T1, T2>>;
+
+    template <UnsignedType T1, UnsignedType T2>
+    friend auto operator/(const Fraction<T1> &u, const Fraction<T2> &v)
+        -> Fraction<std::common_type_t<T1, T2>>;
+
+    template <UnsignedType T1, UnsignedType T2>
+    friend auto operator==(const Fraction<T1> &u, const Fraction<T2> &v) -> bool;
+
+    template <UnsignedType T1, UnsignedType T2>
+    friend auto operator<(const Fraction<T1> &u, const Fraction<T2> &v) -> bool;
+
+    template <UnsignedType T1, UnsignedType T2>
+    friend auto operator>(const Fraction<T1> &u, const Fraction<T2> &v) -> bool;
 };
 
-
-template <UnsignedType T1, UnsignedType T2>
-auto gcd(T1 a, T2 b) -> std::common_type_t<T1, T2> {
-    if (!a || !b) return a > b ? a : b;
-    for (std::common_type_t<T1, T2> t; t = a % b; a = b, b = t)
-        ;
-    return b;
-}
-
-#ifdef __GNUC__
-// https://www.luogu.com.cn/blog/maysoul/solution-p5435
-template <UnsignedType T1, UnsignedType T2>
-    requires UnsignedInt<std::common_type_t<T1, T2>>
-auto gcd(T1 a, T2 b) -> std::common_type_t<T1, T2> {
-    int az = __builtin_ctz(a), bz = __builtin_ctz(b);
-    int z = min(az, bz);
-    int dif;
-    b >>= bz;
-    while (a) {
-        a >>= az;
-        dif = b - a;
-        az = __builtin_ctz(dif);
-        if (a < b) b = a;
-        if (dif < 0)
-            a = -dif;
-        else
-            a = dif;
-    }
-    return b << z;
-}
-
-template <UnsignedType T1, UnsignedType T2>
-    requires UnsignedLong<std::common_type_t<T1, T2>>
-auto gcd(T1 a, T2 b) -> std::common_type_t<T1, T2> {
-    int az = __builtin_ctzl(a), bz = __builtin_ctzl(b);
-    int z = min(az, bz);
-    long dif;
-    b >>= bz;
-    while (a) {
-        a >>= az;
-        dif = b - a;
-        az = __builtin_ctzl(dif);
-        if (a < b) b = a;
-        if (dif < 0)
-            a = -dif;
-        else
-            a = dif;
-    }
-    return b << z;
-}
-
-template <UnsignedType T1, UnsignedType T2>
-    requires UnsignedLongLong<std::common_type_t<T1, T2>>
-auto gcd(T1 a, T2 b) -> std::common_type_t<T1, T2> {
-    int az = __builtin_ctzll(a), bz = __builtin_ctzll(b);
-    int z = min(az, bz);
-    int64_t dif;
-    b >>= bz;
-    while (a) {
-        a >>= az;
-        dif = b - a;
-        az = __builtin_ctzll(dif);
-        if (a < b) b = a;
-        if (dif < 0)
-            a = -dif;
-        else
-            a = dif;
-    }
-    return b << z;
-}
-#endif
-
+#ifndef __disable_check_overflow__
 template <typename T1, typename T2>
 inline auto check_add_overflow(const T1 &_x, const T2 &_y) -> std::common_type_t<T1, T2> {
-    if(_x > std::numeric_limits<std::common_type_t<T1, T2>>::max() - _y) {
+    if (_x > std::numeric_limits<std::common_type_t<T1, T2>>::max() - _y) {
         throw std::overflow_error("addition overflow");
     } else {
         return _x + _y;
@@ -135,14 +91,14 @@ inline auto check_add_overflow(const T1 &_x, const T2 &_y) -> std::common_type_t
 
 template <typename T1, typename T2>
 inline auto check_mul_overflow(const T1 &_x, const T2 &_y) -> std::common_type_t<T1, T2> {
-    if(_x > std::numeric_limits<std::common_type_t<T1, T2>>::max() / _y) {
+    if (_x > std::numeric_limits<std::common_type_t<T1, T2>>::max() / _y) {
         throw std::overflow_error("multiplication overflow");
     } else {
         return _x * _y;
     }
 }
 
-
+#ifndef __disable_gcc_builtin__
 #ifdef __GNUC__
 template <typename T1, typename T2>
     requires UnsignedInt<std::common_type_t<T1, T2>>
@@ -192,6 +148,19 @@ inline auto check_mul_overflow(const T1 &_x, const T2 &_y) -> std::common_type_t
     return ans;
 }
 #endif
+#endif
+
+#else
+template <typename T1, typename T2>
+inline auto check_add_overflow(const T1 &_x, const T2 &_y) -> std::common_type_t<T1, T2> {
+    return _x + _y;
+}
+
+template <typename T1, typename T2>
+inline auto check_mul_overflow(const T1 &_x, const T2 &_y) -> std::common_type_t<T1, T2> {
+    return _x * _y;
+}
+#endif
 
 template <UnsignedType T>
 Fraction<T>::Fraction() {
@@ -208,7 +177,7 @@ Fraction<T>::Fraction(const T1 &_numer, const T1 &_denom) {
         cout << "divided by 0" << endl;
         throw("input error");
     }
-    this->sign = MathUtils_SignBit(numer) * MathUtils_SignBit(denom);
+    this->sign = MathUtils_SignBit(_numer) * MathUtils_SignBit(_denom);
     this->numer = _numer > 0 ? _numer : ~(T)_numer + 1;
     this->denom = _denom > 0 ? _denom : ~(T)_denom + 1;
     Simplify();
@@ -272,57 +241,52 @@ inline auto Fraction<T>::ConvToFloat() const -> double {
 
 template <UnsignedType T1, UnsignedType T2>
 auto operator+(const Fraction<T1> &u, const Fraction<T2> &v) {
-    // ProfilerStart("cpp_demo_perf.prof");
-    if (u.get_sign() == v.get_sign()) {
-        auto d1 = gcd(u.get_denom(), v.get_denom());
+    if (u.sign == v.sign) {
+        auto d1 = gcd(u.denom, v.denom);
         if (d1 > 1) {
-            auto t = check_add_overflow(check_mul_overflow(u.get_numer(), (v.get_denom() / d1)),
-                                        check_mul_overflow(v.get_numer(), (u.get_denom() / d1)));
+            auto t = check_add_overflow(check_mul_overflow(u.numer, (v.denom / d1)),
+                                        check_mul_overflow(v.numer, (u.denom / d1)));
             auto d2 = gcd(t, d1);
             return Fraction<std::common_type_t<T1, T2>>(
-                t / d2, check_mul_overflow((u.get_denom() / d1), (v.get_denom() / d2)), u.get_sign());
+                t / d2, check_mul_overflow((u.denom / d1), (v.denom / d2)), u.sign);
         } else {
-            auto t = check_add_overflow(check_mul_overflow(u.get_numer(), v.get_denom()),
-                                        check_mul_overflow(v.get_numer(), u.get_denom()));
-            return Fraction<std::common_type_t<T1, T2>>(t, check_mul_overflow(u.get_denom(), v.get_denom()),
-                                                        u.get_sign());
+            auto t = check_add_overflow(check_mul_overflow(u.numer, v.denom),
+                                        check_mul_overflow(v.numer, u.denom));
+            return Fraction<std::common_type_t<T1, T2>>(t, check_mul_overflow(u.denom, v.denom), u.sign);
         }
     } else {
-        auto d1 = gcd(u.get_denom(), v.get_denom());
+        auto d1 = gcd(u.denom, v.denom);
         if (d1 > 1) {
-            auto u1_numer = check_mul_overflow(u.get_numer(), (v.get_denom() / d1));
-            auto v1_numer = check_mul_overflow(v.get_numer(), (u.get_denom() / d1));
+            auto u1_numer = check_mul_overflow(u.numer, (v.denom / d1));
+            auto v1_numer = check_mul_overflow(v.numer, (u.denom / d1));
             if (u1_numer > v1_numer) {
                 auto t = u1_numer - v1_numer;
                 auto d2 = gcd(t, d1);
                 return Fraction<std::common_type_t<T1, T2>>(
-                    t / d2, check_mul_overflow((u.get_denom() / d1), (v.get_denom() / d2)), u.get_sign());
+                    t / d2, check_mul_overflow((u.denom / d1), (v.denom / d2)), u.sign);
             } else {
                 auto t = v1_numer - u1_numer;
                 auto d2 = gcd(t, d1);
                 return Fraction<std::common_type_t<T1, T2>>(
-                    t / d2, check_mul_overflow((u.get_denom() / d1), (v.get_denom() / d2)), -u.get_sign());
+                    t / d2, check_mul_overflow((u.denom / d1), (v.denom / d2)), -u.sign);
             }
         } else {
-            auto u1_numer = check_mul_overflow(u.get_numer(), v.get_denom());
-            auto v1_numer = check_mul_overflow(v.get_numer(), u.get_denom());
+            auto u1_numer = check_mul_overflow(u.numer, v.denom);
+            auto v1_numer = check_mul_overflow(v.numer, u.denom);
             if (u1_numer > v1_numer) {
                 auto t = u1_numer - v1_numer;
-                return Fraction<std::common_type_t<T1, T2>>(
-                    t, check_mul_overflow(u.get_denom(), v.get_denom()), u.get_sign());
+                return Fraction<std::common_type_t<T1, T2>>(t, check_mul_overflow(u.denom, v.denom), u.sign);
             } else {
                 auto t = v1_numer - u1_numer;
-                return Fraction<std::common_type_t<T1, T2>>(
-                    t, check_mul_overflow(u.get_denom(), v.get_denom()), -u.get_sign());
+                return Fraction<std::common_type_t<T1, T2>>(t, check_mul_overflow(u.denom, v.denom), -u.sign);
             }
         }
     }
-    // ProfilerStop();
 }
 
 template <UnsignedType T>
 auto operator-(const Fraction<T> &u) -> Fraction<T> {
-    return Fraction<T>(u.get_numer(), u.get_denom(), -u.get_sign());
+    return Fraction<T>(u.numer, u.denom, -u.sign);
 }
 
 template <UnsignedType T1, UnsignedType T2>
@@ -332,50 +296,46 @@ auto operator-(const Fraction<T1> &u, const Fraction<T2> &v) -> Fraction<std::co
 
 template <UnsignedType T1, UnsignedType T2>
 auto operator*(const Fraction<T1> &u, const Fraction<T2> &v) -> Fraction<std::common_type_t<T1, T2>> {
-    auto d1 = gcd(u.get_numer(), v.get_denom());
-    auto d2 = gcd(u.get_denom(), v.get_numer());
-    auto u_numer = u.get_numer() / d1;
-    auto u_denom = u.get_denom() / d2;
-    auto v_numer = v.get_numer() / d2;
-    auto v_denom = v.get_denom() / d1;
-    return Fraction<typename std::common_type_t<T1, T2>>{check_mul_overflow(u_numer, v_numer),
-                                                         check_mul_overflow(u_denom, v_denom),
-                                                         u.get_sign() * v.get_sign()};
+    auto d1 = gcd(u.numer, v.denom);
+    auto d2 = gcd(u.denom, v.numer);
+    auto u_numer = u.numer / d1;
+    auto u_denom = u.denom / d2;
+    auto v_numer = v.numer / d2;
+    auto v_denom = v.denom / d1;
+    return Fraction<typename std::common_type_t<T1, T2>>{
+        check_mul_overflow(u_numer, v_numer), check_mul_overflow(u_denom, v_denom), u.sign * v.sign};
 }
 
 template <UnsignedType T1, UnsignedType T2>
 auto operator/(const Fraction<T1> &u, const Fraction<T2> &v) -> Fraction<std::common_type_t<T1, T2>> {
-    if (v.get_numer() == 0) {
-        cout << format("overflow at operator '/': u = {}{}/{}, v = {}{}/{}", u.get_sign() == -1 ? '-' : ' ',
-                       u.get_numer(), u.get_denom(), v.get_sign() == -1 ? '-' : ' ', v.get_numer(),
-                       v.get_denom())
+    if (v.numer == 0) {
+        cout << format("overflow at operator '/': u = {}{}/{}, v = {}{}/{}", u.sign == -1 ? '-' : ' ',
+                       u.numer, u.denom, v.sign == -1 ? '-' : ' ', v.numer, v.denom)
              << endl;
     }
-    auto d1 = gcd(u.get_numer(), v.get_numer());
-    auto d2 = gcd(u.get_denom(), v.get_denom());
-    auto u_numer = u.get_numer() / d1;
-    auto u_denom = u.get_denom() / d2;
-    auto v_numer = v.get_numer() / d1;
-    auto v_denom = v.get_denom() / d2;
-    return Fraction<typename std::common_type_t<T1, T2>>{check_mul_overflow(u_numer, v_denom),
-                                                         check_mul_overflow(u_denom, v_numer),
-                                                         u.get_sign() * v.get_sign()};
+    auto d1 = gcd(u.numer, v.numer);
+    auto d2 = gcd(u.denom, v.denom);
+    auto u_numer = u.numer / d1;
+    auto u_denom = u.denom / d2;
+    auto v_numer = v.numer / d1;
+    auto v_denom = v.denom / d2;
+    return Fraction<typename std::common_type_t<T1, T2>>{
+        check_mul_overflow(u_numer, v_denom), check_mul_overflow(u_denom, v_numer), u.sign * v.sign};
 }
 
 template <UnsignedType T1, UnsignedType T2>
 auto operator<(const Fraction<T1> &u, const Fraction<T2> &v) -> bool {
-    return u.ConvToFloat() - v.ConvToFloat() < 0;
+    return u.val - v.val < 0;
 }
 
 template <UnsignedType T1, UnsignedType T2>
 auto operator>(const Fraction<T1> &u, const Fraction<T2> &v) -> bool {
-    return u.ConvToFloat() - v.ConvToFloat() > 0;
+    return u.val - v.val > 0;
 }
 
 template <UnsignedType T1, UnsignedType T2>
 auto operator==(const Fraction<T1> &u, const Fraction<T2> &v) -> bool {
-    if (u.get_sign() == v.get_sign() && u.get_numer() == v.get_numer() && u.get_denom() == v.get_denom())
-        return true;
+    if (u.sign == v.sign && u.numer == v.numer && u.denom == v.denom) return true;
     return false;
 }
 
